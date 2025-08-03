@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Memory Challenge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            background-size: 200% 200%;
+            animation: gradientShift 15s ease infinite;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            touch-action: manipulation;
+            color: #fff;
+        }
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        header {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+        }
+        header h1 {
+            font-size: clamp(1.6rem, 4vw, 2rem);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #ecf0f1;
+        }
+        #score, #rank {
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            margin: 0.4rem 0;
+            color: #dfe6e9;
+        }
+        #game-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.98);
+            padding: clamp(1.5rem, 4vw, 2rem);
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3), 0 0 40px rgba(52, 152, 219, 0.2);
+            width: 90vw;
+            max-width: 500px;
+            margin: 1rem;
+            color: #2c3e50;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        #word-display {
+            font-size: clamp(2.2rem, 6vw, 2.8rem);
+            margin-bottom: clamp(1.5rem, 4vw, 2rem);
+            min-height: 3.5rem;
+            font-weight: 700;
+            color: #2a5298;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        #word-display.game-over {
+            color: #e74c3c;
+            font-size: clamp(1.8rem, 5vw, 2.2rem);
+        }
+        #mistake {
+            font-size: clamp(1rem, 3vw, 1.2rem);
+            color: #e74c3c;
+            margin-top: 1rem;
+            font-weight: 500;
+            animation: shake 0.5s ease;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        #timer-container {
+            position: relative;
+            width: 85%;
+            max-width: 400px;
+            height: clamp(1.5rem, 4vw, 1.8rem);
+            margin: 0 auto 1.5rem;
+            background: #dfe6e9;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        #timer-line-left, #timer-line-right {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 0;
+            transition: width linear;
+            background: linear-gradient(to right, #e74c3c, #c0392b);
+        }
+        #timer-line-right {
+            right: 0;
+            background: linear-gradient(to left, #3498db, #2980b9);
+        }
+        #input-field {
+            font-size: clamp(1.1rem, 3vw, 1.3rem);
+            padding: clamp(0.6rem, 2vw, 0.8rem) clamp(0.8rem, 2.5vw, 1rem);
+            width: 85%;
+            max-width: 400px;
+            margin: 0 auto 1rem;
+            border: 3px solid #3498db;
+            border-radius: 10px;
+            display: none;
+            font-family: monospace;
+            background: #f7f9fc;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+        #input-field:focus {
+            border-color: #2ecc71;
+            outline: none;
+        }
+        #keyboard {
+            display: none;
+            grid-template-columns: repeat(5, 1fr);
+            gap: clamp(0.4rem, 1vw, 0.6rem);
+            width: 85%;
+            max-width: 400px;
+            margin: 0 auto 1rem;
+        }
+        .key, #submit-button {
+            font-size: clamp(1rem, 2.5vw, 1.3rem);
+            padding: clamp(0.6rem, 2vw, 0.9rem);
+            background: linear-gradient(145deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            touch-action: manipulation;
+            transition: transform 0.1s ease, background 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+            min-height: 44px; /* Minimum touch target size for accessibility */
+            min-width: 44px;
+        }
+        .key:hover, #submit-button:hover {
+            background: linear-gradient(145deg, #2980b9, #1f6391);
+            transform: scale(1.05);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
+        }
+        .key:active, #submit-button:active {
+            transform: scale(0.95);
+        }
+        .key-backspace, #submit-button {
+            grid-column: span 2;
+            width: 100%; /* Ensure it spans correctly within the grid */
+        }
+        #submit-button {
+            background: linear-gradient(145deg, #2ecc71, #27ae60);
+        }
+        #submit-button:hover {
+            background: linear-gradient(145deg, #27ae60, #219653);
+        }
+        #start-button {
+            font-size: clamp(1.1rem, 3vw, 1.3rem);
+            padding: clamp(0.8rem, 2.5vw, 1rem) clamp(1.5rem, 4vw, 2rem);
+            background: linear-gradient(145deg, #2ecc71, #27ae60);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            touch-action: manipulation;
+            transition: transform 0.1s ease, background 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+            animation: pulse 2s infinite;
+            min-height: 44px;
+            min-width: 120px;
+        }
+        #start-button:hover {
+            background: linear-gradient(145deg, #27ae60, #219653);
+            transform: scale(1.05);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
+        }
+        #start-button:active {
+            transform: scale(0.95);
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+        footer {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1rem;
+            text-align: center;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+            color: #dfe6e9;
+            backdrop-filter: blur(5px);
+        }
+        @media (max-width: 600px) {
+            #game-container {
+                padding: clamp(1.2rem, 3vw, 1.5rem);
+            }
+            #input-field, #keyboard {
+                width: 90%;
+                max-width: 350px;
+            }
+            .key, #submit-button {
+                padding: clamp(0.5rem, 1.5vw, 0.7rem);
+            }
+        }
+        @media (max-width: 320px) {
+            #word-display {
+                font-size: clamp(1.8rem, 5vw, 2.2rem);
+            }
+            #input-field, #keyboard {
+                width: 95%;
+                max-width: 300px;
+            }
+            .key, #submit-button {
+                font-size: clamp(0.9rem, 2vw, 1.1rem);
+                padding: clamp(0.4rem, 1vw, 0.6rem);
+            }
+            #start-button {
+                padding: clamp(0.6rem, 2vw, 0.8rem) clamp(1rem, 3vw, 1.5rem);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Number Memory Challenge</h1>
+        <div id="score">Score: 0</div>
+        <div id="rank">Rank: Beginner</div>
+    </header>
+    <div id="game-container">
+        <div id="word-display"></div>
+        <div id="timer-container">
+            <div id="timer-line-left"></div>
+            <div id="timer-line-right"></div>
+        </div>
+        <input type="text" id="input-field" placeholder="Enter the number" autocomplete="off" disabled>
+        <div id="mistake"></div>
+        <div id="keyboard">
+            <button class="key" data-key="1">1</button>
+            <button class="key" data-key="2">2</button>
+            <button class="key" data-key="3">3</button>
+            <button class="key" data-key="4">4</button>
+            <button class="key" data-key="5">5</button>
+            <button class="key" data-key="6">6</button>
+            <button class="key" data-key="7">7</button>
+            <button class="key" data-key="8">8</button>
+            <button class="key" data-key="9">9</button>
+            <button class="key" data-key="0">0</button>
+            <button class="key key-backspace" data-key="backspace">Backspace</button>
+            <button id="submit-button">Submit</button>
+        </div>
+        <button id="start-button">Start Game</button>
+    </div>
+    <footer>
+        Created with ❤️ by xAI | Challenge Your Memory!
+    </footer>
+
+    <script>
+        let currentWord = "";
+        let score = 0;
+        let timeLeft = 0;
+        let displayTime = 5; // Initial memorization time
+        let minDisplayTime = 1; // Fastest level
+        let numberLength = 2; // Start with 2-digit numbers
+        let maxNumberLength = 10; // Maximum number length
+        let timer;
+        let gameStarted = false;
+        let isWordVisible = true;
+        let lastEntered = "";
+
+        const wordDisplay = document.getElementById("word-display");
+        const timerLineLeft = document.getElementById("timer-line-left");
+        const timerLineRight = document.getElementById("timer-line-right");
+        const inputField = document.getElementById("input-field");
+        const submitButton = document.getElementById("submit-button");
+        const startButton = document.getElementById("start-button");
+        const keyboard = document.getElementById("keyboard");
+        const scoreDisplay = document.getElementById("score");
+        const rankDisplay = document.getElementById("rank");
+        const mistakeDisplay = document.getElementById("mistake");
+
+        function getRandomNumber(length) {
+            let number = "";
+            for (let i = 0; i < length; i++) {
+                number += Math.floor(Math.random() * 10);
+            }
+            return number;
+        }
+
+        function getRank(score) {
+            if (score < 50) return "Beginner";
+            if (score < 100) return "Intermediate";
+            if (score < 150) return "Advanced";
+            return "Expert";
+        }
+
+        function updateTimerLines() {
+            const percentage = (timeLeft / displayTime) * 50;
+            timerLineLeft.style.width = `${percentage}%`;
+            timerLineRight.style.width = `${percentage}%`;
+        }
+
+        function startTimer() {
+            timer = setInterval(() => {
+                timeLeft -= 0.01; // Update every 10ms for smooth animation
+                updateTimerLines();
+                if (timeLeft <= 0 && isWordVisible) {
+                    wordDisplay.textContent = "";
+                    inputField.style.display = "block";
+                    inputField.disabled = false;
+                    inputField.focus();
+                    keyboard.style.display = "grid";
+                    submitButton.style.display = "inline-block";
+                    startButton.style.display = "none";
+                    isWordVisible = false;
+                    clearInterval(timer);
+                    timerLineLeft.style.width = "0%";
+                    timerLineRight.style.width = "0%";
+                }
+            }, 10);
+        }
+
+        function startGame() {
+            if (!gameStarted) {
+                gameStarted = true;
+                startButton.style.display = "none";
+                inputField.style.display = "none";
+                submitButton.style.display = "none";
+                keyboard.style.display = "none";
+                mistakeDisplay.textContent = "";
+                rankDisplay.textContent = `Rank: ${getRank(score)}`;
+                nextRound();
+                startTimer();
+            }
+        }
+
+        function nextRound() {
+            currentWord = getRandomNumber(numberLength);
+            wordDisplay.textContent = currentWord;
+            wordDisplay.classList.remove("game-over");
+            isWordVisible = true;
+            inputField.value = "";
+            inputField.disabled = true;
+            inputField.style.display = "none";
+            submitButton.style.display = "none";
+            keyboard.style.display = "none";
+            startButton.style.display = "none";
+            mistakeDisplay.textContent = "";
+            timeLeft = displayTime;
+            updateTimerLines();
+        }
+
+        function decreaseDisplayTime() {
+            if (displayTime > minDisplayTime) {
+                displayTime = Math.max(minDisplayTime, displayTime - 0.5);
+            }
+        }
+
+        function increaseNumberLength() {
+            if (numberLength < maxNumberLength) {
+                numberLength += 1;
+            }
+        }
+
+        function endGame() {
+            wordDisplay.textContent = "Game Over!";
+            wordDisplay.classList.add("game-over");
+            rankDisplay.textContent = `Rank: ${getRank(score)}`;
+            mistakeDisplay.textContent = `You entered "${lastEntered}" instead of "${currentWord}"`;
+            inputField.disabled = true;
+            inputField.value = "";
+            inputField.style.display = "none";
+            submitButton.style.display = "none";
+            keyboard.style.display = "none";
+            timerLineLeft.style.width = "0%";
+            timerLineRight.style.width = "0%";
+            startButton.style.display = "inline-block";
+            score = 0;
+            numberLength = 2;
+            displayTime = 5;
+            scoreDisplay.textContent = `Score: ${score}`;
+            rankDisplay.textContent = `Rank: ${getRank(score)}`;
+            gameStarted = false;
+        }
+
+        submitButton.addEventListener("click", () => {
+            if (!isWordVisible) {
+                lastEntered = inputField.value;
+                if (inputField.value === currentWord) {
+                    score += 10;
+                    scoreDisplay.textContent = `Score: ${score}`;
+                    rankDisplay.textContent = `Rank: ${getRank(score)}`;
+                    decreaseDisplayTime();
+                    increaseNumberLength();
+                    clearInterval(timer);
+                    nextRound();
+                    startTimer();
+                } else {
+                    endGame();
+                }
+            }
+        });
+
+        startButton.addEventListener("click", startGame);
+
+        document.querySelectorAll(".key").forEach(key => {
+            key.addEventListener("click", () => {
+                const keyValue = key.dataset.key;
+                if (keyValue === "backspace") {
+                    inputField.value = inputField.value.slice(0, -1);
+                } else {
+                    inputField.value += keyValue;
+                }
+                inputField.focus();
+            });
+        });
+
+        // Prevent default touch behaviors for better mobile experience
+        document.addEventListener("touchstart", (e) => {
+            if (e.target.tagName !== "INPUT" && e.target.tagName !== "BUTTON") {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    </script>
+</body>
+</html>
