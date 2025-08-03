@@ -197,14 +197,24 @@
             100% { transform: scale(1); }
         }
         footer {
-            width: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 1rem;
-            text-align: center;
-            font-size: clamp(0.8rem, 2vw, 0.9rem);
-            color: #dfe6e9;
-            backdrop-filter: blur(5px);
-        }
+      width: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      padding: 1.2rem;
+      text-align: center;
+      font-size: clamp(0.85rem, 2vw, 1rem);
+      color: #bdc3c7;
+      backdrop-filter: blur(6px);
+    }
+    footer a {
+      color: #00cec9;
+      text-decoration: none;
+      margin: 0 0.5rem;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+    footer a:hover {
+      color: #81ecec;
+    }
         @media (max-width: 600px) {
             #game-container {
                 padding: clamp(1.2rem, 3vw, 1.5rem);
@@ -265,9 +275,12 @@
         </div>
         <button id="start-button">Start Game</button>
     </div>
-    <footer>
-        Created with ❤️ by xAI | Challenge Your Memory!
-    </footer>
+  <footer>
+    Created with ❤️ by <strong>Mohd Ziya</strong> |
+    <a href="https://www.linkedin.com/in/mohdziya/" target="_blank">LinkedIn</a> |
+    <a href="https://mohdziya.netlify.app/" target="_blank">Portfolio</a> |
+    Challenge Your Memory!
+  </footer>
 
     <script>
         let currentWord = "";
